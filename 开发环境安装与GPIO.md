@@ -10,6 +10,7 @@
   - [GPIO设置推挽输出](#gpio设置推挽输出)
   - [GPIO输出](#gpio输出)
   - [GPIO电平读取](#gpio电平读取)
+  - [Ports](#ports)
   - [参考](#参考)
 
 <!-- /TOC -->
@@ -213,6 +214,29 @@ void core0_main(void)
 
 - 读取P13.2电平: `IfxPort_getGroupState(&MODULE_P13,2,1)`
 - 读取P33[7:0]电平: uint16 value = IfxPort_getGroupState(&MODULE_P33, 0, 0xff);
+
+## Ports
+
+另一种初始化方法
+
+```c
+#include "IfxPort_PinMap.h"
+#include "IfxPort_Io.h"
+
+    const IfxPort_Io_ConfigPin configPin[] = {
+        {&IfxPort_P13_0, IfxPort_Mode_outputPushPullGeneral, IfxPort_PadDriver_cmosAutomotiveSpeed1},
+        {&IfxPort_P13_1, IfxPort_Mode_outputPushPullGeneral, IfxPort_PadDriver_cmosAutomotiveSpeed1},
+        {&IfxPort_P13_2, IfxPort_Mode_outputPushPullGeneral, IfxPort_PadDriver_cmosAutomotiveSpeed1},
+        {&IfxPort_P13_3, IfxPort_Mode_outputPushPullGeneral, IfxPort_PadDriver_cmosAutomotiveSpeed1}
+    };
+
+    const IfxPort_Io_Config conf = {
+            sizeof(configPin)/sizeof(IfxPort_Io_ConfigPin),
+            (IfxPort_Io_ConfigPin *)configPin
+    };
+
+    IfxPort_Io_initModule(&conf);
+```
 
 ## 参考
 
