@@ -84,6 +84,30 @@ GTM提供了其他外设的柔性连接:
 
 ![DIA](Assets/Snipaste_2020-10-28_19-43-04.png)
 
+TC397而言, GTM资源还是非常丰富的:  
+
+![TC397_GTM](Assets/Snipaste_2020-11-02_14-05-01.png)
+
+列表如下:  
+
+| GTM<br/>Modules                     | TC39x                                                          |
+|-------------------------------------|----------------------------------------------------------------|
+| TIM                                 | 8x8 ch. (TIM0-7)                                               |
+| TOM                                 | 6x16 ch. (TOM0-5)                                              |
+| ATOM                                | 12x8 ch. (ATOM0-11)                                            |
+| DTM/CDTM                            | 5x4 ch., 2x2 ch./7xCDTM                                        |
+| MCS                                 | 10x8 ch. (MCS0-9)                                              |
+| SPE                                 | 6 (SPE0-5)                                                     |
+| PSM                                 | 3 (PSM0-2)                                                     |
+| DPLL                                | 1                                                              |
+| TBU                                 | 4 (TBU0-3)                                                     |
+| BRC                                 | 1                                                              |
+| MON                                 | 1                                                              |
+| CMP                                 | 1                                                              |
+| GTM Clusters<br/>(max speed)        | 12 (CCM0-11)<br/>CCM0-4: 200 MHz max<br/>CCM5-11: 100 MHz max" |
+| ARU Latency<br/>(round robin)       | 128x10ns => 1280ns @100MHz, (ARU_CADDR_END= 127)               |
+
+
 ## GPT12
 
 GPT12, General Purpose Timer Unit, 用于定时, 计数, 脉宽测量和脉冲产生等, 5个16bit定时器组成了2个定时器块GPT1和GPT2. 完美适合**带编码器的电机应用**  
@@ -115,9 +139,51 @@ T2~T6每个定时器有一个输入引脚, 用于门控或者技术输入, 而�
 
 ## CCU6
 
+CCU6, Capture Compare Unit 6, 用于控制AC和DC驱动, 支持用霍尔传感器或者反电动势检测(Back-EMF detection)来控制BLDC.  
+
+![CCU6](Assets/Snipaste_2020-10-30_15-45-34.png)
+
+中心/边缘对齐PWM
+
+![CCU6 PWM](Assets/Snipaste_2020-10-30_15-44-19.png)
+
+中心对齐PWM: 
+
+- 空间矢量调制(Space Vector Modulation)完美适配永磁同步电机(Permanent Magnetic Synchronous Motor, PMSM)应用
+- 中心对齐PWM减少EMC
+- 周期匹配/零匹配时的阴影转移(Shadow transfer on Period match/zero match)
+- 死区时间的长度可以单独编程以应对MOSFET的瞬态行为
+
+边缘对齐PWM: 完美适配BLDC(块换向)
+
+![block](Assets/Snipaste_2020-10-30_16-00-51.png)
+
+Fast emergency stop (/CTRAP):  
+
+- 通过外部信号(/CTRAP)即可快速紧急停止, 无需CPU负载, 即可将输出通道切换到定义的状态
+- TRAP(陷阱?)控制: 每个通道都有被动选择位(passive state select bit), 初始化位(initialization bit)
+- TRAP状态下, 所有输出可以切换到选定的passive state
+- TRAP状态可以通过位域(bit field)由软件或者硬件触发
+
+系统集成:
+
+- CCU6同步触发ADC转换测量电流
+- 位置识别可以通过霍尔传感器(CCU6), 编码器(GPT12)和解析器Resolver(DSADC)
+- 所有用于PMSM/BLDC控制的模块都在芯片上
+
+![system](Assets/Snipaste_2020-10-30_16-09-04.png)
+
+以BLDC为例:  
+
+- CCU6产生不同的PWM模式转动电机
+- 通过霍尔传感器提供的位置, 下一个换向模式自动生成
+- 同步触发ADC转换
+
+![BLDC](Assets/Snipaste_2020-10-30_16-14-29.png)
+
 ## 参考
 
 - [AURIX STM](https://www.infineon.com/dgdl/Infineon-AURIX_System_Timer-Training-v01_00-EN.pdf?fileId=5546d46269bda8df0169ca92e404259c)  
 - [AURIX GTM](https://www.infineon.com/dgdl/Infineon-AURIX_Generic_Timer_Module-Training-v01_00-EN.pdf?fileId=5546d46269bda8df0169ca6e2c652546)
-- 
-
+- [AURIX GPT12 TC3xx](https://www.infineon.com/dgdl/Infineon-AURIX_TC3xx_General_Purpose_Timer_Unit-Training-v01_00-EN.pdf?fileId=5546d46272e49d2a0172eb1068c17375)  
+- [AURIX CCU6](https://www.infineon.com/dgdl/Infineon-AURIX_Capture_Compare_Unit_6-Training-v01_00-EN.pdf?fileId=5546d46269bda8df0169ca5bcc882522)
